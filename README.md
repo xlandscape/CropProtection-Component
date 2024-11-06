@@ -1,20 +1,21 @@
 ## Table of Contents
+
 * [About the project](#about-the-project)
-  * [Built With](#built-with)
+    * [Built With](#built-with)
 * [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
+    * [Prerequisites](#prerequisites)
+    * [Installation](#installation)
 * [Usage](#usage)
-  * [Inputs](#inputs)
-  * [Outputs](#outputs)
+    * [Inputs](#inputs)
+    * [Outputs](#outputs)
 * [Roadmap](#roadmap)
 * [Contributing](#contributing)
 * [License](#license)
 * [Contact](#contact)
 * [Acknowledgements](#acknowledgements)
 
-
 ## About the project
+
 xCropProtection is a Landscape Model component for simulating applications of plant protection products on fields 
 with a given landscape. The simulation is done on a daily-fieldwise resolution. On each day and field in the 
 during the given simulation period, the module checks if there are applications of plant protection products 
@@ -24,115 +25,184 @@ deterministic values or sample from a random distribution.
 xCropProtection currently supports the input scales `global` and `time/day, space/base_geometry`.  
 xCropProtection currently supports the random variable scales `global`, `time/day`, `time/year`, `time/day, space/base_geometry` and `time/year, space/base_geometry`.  
 This is an automatically generated documentation based on the available code and in-line documentation. The current
-version of this document is from 2024-03-06.  
+version of this document is from 2024-11-06.
 
 ### Built with
-* Landscape Model core version 1.14
-* xCropProtection version 1.0 (see `module\README.md` for details)
 
+* Landscape Model core version 1.16.5
+* xCropProtection version 1.0 
 
 ## Getting Started
-The component can be used in any Landscape Model based on core version 1.14 or newer. See the Landscape
+
+The component can be used in any Landscape Model based on core version 1.16.5 or newer. See the Landscape
 Model core's `README` for general tips on how to add a component to a Landscape Model.
 
 ### Prerequisites
-A model developer that wants to add the `xCropProtection` component to a Landscape Model needs to set up the general 
+
+A model developer that wants to add the `xCropProtection` component to a Landscape Model needs to set up the general
 structure for a Landscape Model first. See the Landscape Model core's `README` for details on how to do so.
 
 ### Installation
-1. Copy the `xCropProtection` component into the `model\variant` sub-folder.
-2. Make use of the component by including it into the model composition using `module=components.xCropProtection.xCropProtection` and 
-   `class=xCropProtection`. 
 
+1. Copy the `xCropProtection` component into the `model\variant` sub-folder.
+2. Make use of the component by including it into the model composition using `module=CropProtection.xCropProtection` and
+   `class=xCropProtection`.
 
 ## Usage
-The following gives a sample configuration of the `xCropProtection` component. See [inputs](#inputs) and 
+
+The following gives a sample configuration of the `xCropProtection` component. See [inputs](#inputs) and
 [outputs](#outputs) for further details on the component's interface.
+
 ```xml
-<xCropProtection module="components" class="xCropProtection">
-<xCropProtectionFilePath
-scales="global">$(:xCropProtectionParameters)</xCropProtectionFilePath>
-<ParametrizationNamespace
-scales="global">urn:xCropProtectionLandscapeScenarioParametrization</ParametrizationNamespace>
-<SimulationStart
-type="date" scales="global">$(SimulationStart)</SimulationStart>
-<SimulationEnd type="date"
+<xCropProtection module="CropProtection" class="xCropProtection">
+  <xCropProtectionFilePath scales="global">
+$(_PROJECT_DIR_)\CropProtection\$(CropProtectionScenario).xml
+  </xCropProtectionFilePath>
+  <ParametrizationNamespace
+scales="global">
+    urn:xCropProtectionLandscapeScenarioParametrization
+  </ParametrizationNamespace>
+<SimulationStart type="date" scales="global">$(SimulationStart)</SimulationStart>
+  <SimulationEnd type="date"
 scales="global">$(SimulationEnd)</SimulationEnd>
-<RandomSeed type="int" scales="global">$(RandomSeed)</RandomSeed>
-<Fields>
-  <FromOutput component="LandscapeScenario" output="FeatureIds" />
-</Fields>
-<LandUseLandCoverTypes>
-<FromOutput component="LandscapeScenario" output="FeatureTypeIds" />
-</LandUseLandCoverTypes>
-<FieldGeometries>
-<FromOutput component="LandscapeScenario" output="Geometries" />
-</FieldGeometries>
-  </xCropProtection>
+  <RandomSeed type="int" scales="global">0</RandomSeed>
+<OutputApplicationType>$(OutputApplicationType)</OutputApplicationType>
+<ProductDatabase>$(_PROJECT_DIR_)\$(ProductDatabase)</ProductDatabase>
+  <MinimumAppliedArea
+scales="global">$(MinimumAppliedArea)</MinimumAppliedArea>
+  <Fields>
+    <FromOutput component="LandscapeScenario"
+output="FeatureIds" />
+  </Fields>
+  <LandUseLandCoverTypes>
+    <FromOutput component="LandscapeScenario"
+output="FeatureTypeIds" />
+  </LandUseLandCoverTypes>
+  <FieldGeometries>
+    <FromOutput component="LandscapeScenario"
+output="Geometries" />
+  </FieldGeometries>
+</xCropProtection>
 ```
 
 ### Inputs
+
 #### ParametrizationNamespace
+
 `ParametrizationNamespace` expects its values to be of type `str`.
 Values of the `ParametrizationNamespace` input may not have a physical unit.
 Values have to refer to the `global` scale.
 
 #### xCropProtectionFilePath
+
 The path to the XML-parametrization of xCropProtection. A `str` of global scale. Value has no unit.
 `xCropProtectionFilePath` expects its values to be of type `str`.
 Values of the `xCropProtectionFilePath` input may not have a physical unit.
 Values have to refer to the `global` scale.
 
 #### SimulationStart
+
 The first day of the simulation. A `datetime.date` of global scale. Value has no unit.
 `SimulationStart` expects its values to be of type `date`.
 Values of the `SimulationStart` input may not have a physical unit.
 Values have to refer to the `global` scale.
 
 #### SimulationEnd
+
 The last day of the simulation. A `datetime.date` of global scale. Value has no unit.
 `SimulationEnd` expects its values to be of type `date`.
 Values of the `SimulationEnd` input may not have a physical unit.
 Values have to refer to the `global` scale.
 
 #### RandomSeed
+
 A initialization for the random number generator. An int of global scale. Value has a unit of 1.
 `RandomSeed` expects its values to be of type `int`.
 Values of the `RandomSeed` input may not have a physical unit.
 Values have to refer to the `global` scale.
 
+#### OutputApplicationType
+
+The output type of the simulation: either product or active substance.
+`OutputApplicationType` expects its values to be of type `str`.
+Values of the `OutputApplicationType` input may not have a physical unit.
+Values have to refer to the `global` scale.
+
+#### ProductDatabase
+
+Path to the database containing product-active substance relationships.
+`ProductDatabase` expects its values to be of type `str`.
+Values of the `ProductDatabase` input may not have a physical unit.
+Values have to refer to the `global` scale.
+
+#### MinimumAppliedArea
+
+If a field's area is smaller than this value after applying the InCropBuffer and InFieldMargin values, no application
+will occur.
+`MinimumAppliedArea` expects its values to be of type `str`.
+Values of the `MinimumAppliedArea` input may not have a physical unit.
+Values have to refer to the `global` scale.
+
 #### Fields
+
 A list of identifiers of individual geometries. A list[int] of scale space/base_geometry. Values have no unit.
 `Fields` expects its values to be of type `list`.
 Values of the `Fields` input may not have a physical unit.
 Values have to refer to the `space/base_geometry` scale.
 
 #### LandUseLandCoverTypes
+
 The land-use and land-cover type of spatial units. A list[int] of scale space/base_geometry. Values have no unit.
 `LandUseLandCoverTypes` expects its values to be of type `list`.
 Values of the `LandUseLandCoverTypes` input may not have a physical unit.
 Values have to refer to the `space/base_geometry` scale.
 
 #### FieldGeometries
+
 The geometries of individual landscape parts. A list[bytes] of scale space/base_geometry. Values have no unit.
 `FieldGeometries` expects its values to be of type `list`.
 Values of the `FieldGeometries` input may not have a physical unit.
 Values have to refer to the `space/base_geometry` scale.
 
+#### XMLPath
+
+The path to the folder containing the XML file automatically generated if the input file type  is Excel. This value is
+not set by the user and defaults to the run\SimID directory.
+`XMLPath` expects its values to be of type `str`.
+Values of the `XMLPath` input may not have a physical unit.
+Values have to refer to the `global` scale.
+
+
 ### Outputs
 #### ApplicationDates
-Application dates. A numpy-array of scale other/application.  
+Application dates. A numpy-array of scale other/application.
 #### ApplicationRates
-Application rates. A numpy-array of scale other/application.  
+Application rates. A numpy-array of scale other/application.
 #### AppliedPPP
-Applied products. A list[str] of scale other/application.  
+Applied products/substances. A list[str] of scale other/application.
 #### AppliedAreas
-Applied geometries. A list[bytes] of scale other/application.  
+Applied geometries. A list[bytes] of scale other/application.
 #### AppliedFields
-Applied fields. A numpy-array of scale other/application.  
+Applied fields. A numpy-array of scale other/application.
 #### TechnologyDriftReductions
-Drift reductions. A numpy-array of scale other/application.  
+Drift reductions. A numpy-array of scale other/application.
+## Roadmap
 
+The `xCropProtection` component is stable. No further development takes place at the moment.
+
+## Contributing
+
+Contributions are welcome. Please contact the authors (see [Contact](#contact)). Also consult the `CONTRIBUTING`
+document for more information.
+
+## License
+
+Distributed under the CC0 License. See `LICENSE` for more information.
+
+## Contact
+
+
+## Acknowledgements
 
 ## Parameters
 ### TemporalValidity 
@@ -166,7 +236,7 @@ Type(s): `none` or `list[str]`
 
 Unit: `none`
 
-Scale(s): `other/products`
+Scale(s): `other/products` or `other/active_substances`
 ### ApplicationRate 
 Application rate of product that should be applied during a single application.
 
@@ -465,21 +535,3 @@ There are variables that describe date-time-windows. Exact dates/times are sampl
 <DateWindow type="xCropProtection.DateSpan">2023-01-01 to 2023-31-12</DateWindow>
 <DateTimeWindow type="xCropProtection.MonthDayTimeSpan">01-01 00:00 to 31-12 23:59</DateTimeWindow>
 ````  
-
-## Roadmap
-The `xCropProtection` component is stable. No further development takes place at the moment.
-
-
-## Contributing
-Contributions are welcome. Please contact the authors (see [Contact](#contact)). Also consult the `CONTRIBUTING` 
-document for more information.
-
-
-## License
-Distributed under the CC0 License. See `LICENSE` for more information.
-
-
-## Contact
-
-
-## Acknowledgements

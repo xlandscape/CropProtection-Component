@@ -4,7 +4,7 @@ import os
 import textwrap
 import inspect
 import xml.etree.ElementTree
-from components import xCropProtection
+from CropProtection import xCropProtection
 from base import documentation
 
 
@@ -411,7 +411,7 @@ def document_examples(file_path: str):
 # ````  
 # """)
 
-readme_path = os.path.join("model", "core", "components", "xCropProtection", "README.md")
+readme_path = os.path.join("model", "variant", "CropProtection", "README.md")
 mc_xml_path = os.path.join("model", "variant", "mc.xml")
 
 documentation.document_component(
