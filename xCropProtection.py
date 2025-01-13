@@ -237,7 +237,8 @@ class xCropProtection(base.Component):
                     else:
                         dates = value.split(" to ")
                         dates = (datetime.datetime.strptime(dates[0], "%Y-%m-%d"), datetime.datetime.strptime(dates[1], "%Y-%m-%d"))
-                        values[key] = DateSpan(Date(dates[0].year, dates[0].month, dates[0].day), Date(dates[1].year, dates[1].month, dates[1].day))
+                        values[key] = DateSpan(Date(datetime.date(dates[0].year, dates[0].month, dates[0].day).toordinal()), 
+                                               Date(datetime.date(dates[1].year, dates[1].month, dates[1].day).toordinal()))
 
             # get type for variable:
             if not type:
@@ -323,7 +324,8 @@ class xCropProtection(base.Component):
             if ppm_calendar.TemporalValidity.Type == "str":
                 for key, value in ppm_calendar.TemporalValidity.Value.items():
                     if value == "always":
-                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(1, 1, 1), Date(9999, 12, 31))
+                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(datetime.date(1, 1, 1).toordinal()), 
+                                                                            Date(datetime.date(9999, 12, 31).toordinal()))
 
     def set_min_applied_area(self) -> None:
         try:
