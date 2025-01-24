@@ -246,7 +246,8 @@ class xCropProtection(base.Component):
                     else:
                         dates = value.split(" to ")
                         dates = (datetime.datetime.strptime(dates[0], "%Y-%m-%d"), datetime.datetime.strptime(dates[1], "%Y-%m-%d"))
-                        values[key] = DateSpan(Date(dates[0].year, dates[0].month, dates[0].day), Date(dates[1].year, dates[1].month, dates[1].day))
+                        values[key] = DateSpan(Date(datetime.date(dates[0].year, dates[0].month, dates[0].day).toordinal()), 
+                                               Date(datetime.date(dates[1].year, dates[1].month, dates[1].day).toordinal()))
 
             # get type for variable:
             if not type:
@@ -332,7 +333,8 @@ class xCropProtection(base.Component):
             if ppm_calendar.TemporalValidity.Type == "str":
                 for key, value in ppm_calendar.TemporalValidity.Value.items():
                     if value == "always":
-                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(1, 1, 1), Date(9999, 12, 31))
+                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(datetime.date(1, 1, 1).toordinal()), 
+                                                                            Date(datetime.date(9999, 12, 31).toordinal()))
 
     def set_min_applied_area(self) -> None:
         try:
@@ -368,25 +370,22 @@ class xCropProtection(base.Component):
             root.insert(0, new_node)
             root.remove(node)
 
-    # Create a list of all days that are the start date of an application window in the input file
-    # This function should be modified following the first refactoring
     def get_application_dates(self, root: xml.etree.ElementTree, namespace: typing.Dict[str, str]) -> None:
+        """Generate a list of all days which are the start date of an application window in the input file."""
         # Define the simulation bounds
         sim_start = self.inputs["SimulationStart"].read().values.toordinal()
         sim_end = self.inputs["SimulationEnd"].read().values.toordinal()
         output_dates = []
-        # Find all indivicual PPMCalendar elements
+
         for calendar in root.findall(".//*PPMCalendar", namespace):
             temporal_validity = calendar.find(".//TemporalValidity", namespace)
 
             # The calendar is always valid
             if temporal_validity.text.strip() == 'always':
-                calendar_validity = DateSpan(Date(1, 1, 1), Date(9999, 12, 31))
-            # The calendar has a specific temporal validity
-            else:
+                calendar_validity = (datetime.date(1, 1, 1).toordinal(), datetime.date(9999, 12, 31).toordinal())
+            else: # The calendar has a specific temporal validity
                 dates = temporal_validity.text.strip().split(" to ")
-                dates = (datetime.datetime.strptime(dates[0], "%Y-%m-%d"), datetime.datetime.strptime(dates[1], "%Y-%m-%d"))
-                calendar_validity = DateSpan(Date(dates[0].year, dates[0].month, dates[0].day), Date(dates[1].year, dates[1].month, dates[1].day))
+                calendar_validity = (datetime.date.fromisoformat(dates[0]).toordinal(), datetime.date.fromisoformat(dates[1]).toordinal())
 
             calendar_days = []
             # Get all application windows in the current calendar
@@ -397,32 +396,18 @@ class xCropProtection(base.Component):
 
             # Remove duplicate days with set()
             calendar_days = list(set(calendar_days))
-
-            # max between sim start and calendar start
-            if sim_start > calendar_validity.Start.toordinal():
-                calendar_start = datetime.date.fromordinal(sim_start)
-            else:
-                calendar_start = datetime.date(calendar_validity.Start.Year, calendar_validity.Start.Month, calendar_validity.Start.Day)
-
-            # Minimum date between sim end and the end of the calendar's validity
-            if sim_end < calendar_validity.End.toordinal():
-                calendar_end = datetime.date.fromordinal(sim_end)
-            else:
-                calendar_end = datetime.date(calendar_validity.End.Year, calendar_validity.End.Month, calendar_validity.End.Day)
             
             dates_to_add = []
-            # Get a list of the years that a calendar is valid; they are always consecutive
-            # Calculate the proleptic Gregorian ordinal for each day in the list and year in the range
-            for year in list(range(calendar_start.year, calendar_end.year + 1)):
-                # Concatenate the year with the month-day
+            # Calculate the proleptic Gregorian ordinal for each day in the list and year in the simulation
+            for year in list(range(datetime.date.fromordinal(sim_start).year, datetime.date.fromordinal(sim_end).year + 1)):
+                # Concatenate the year with the month-day from the application window
                 str_dates = [str(year) + "-" + md for md in calendar_days]
                 ordinal_dates = [datetime.date.fromisoformat(x).toordinal() for x in str_dates]
                 dates_to_add.extend(ordinal_dates)
-            # Filter any dates that occur outside the calendar's temporal validity
-            output_dates.extend(list(filter(lambda x: x >= calendar_start.toordinal() and x <= calendar_end.toordinal(), dates_to_add)))
+            # Remove any dates that occur outside the calendar's temporal validity
+            output_dates.extend(list(filter(lambda x: x >= calendar_validity[0] and x <= calendar_validity[1], dates_to_add)))
         # Remove duplicate dates between calendars
         output_dates = list(set(output_dates))
-        # Filter dates based on the simulation start and end
         output_dates = list(filter(lambda x: x >= sim_start and x <= sim_end, output_dates))
         # Sort oldest to latest
         output_dates.sort()
