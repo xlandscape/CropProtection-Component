@@ -286,7 +286,7 @@ class Date:
         return False
 
     def toordinal(self) -> int:
-        return datetime.date(self._year, self._month, self._day).toordinal()
+        return self._day
 
 class DateSpan:
 
@@ -314,5 +314,5 @@ class DateSpan:
         return self._start <= day and self._end >= day
 
     def sample(self) -> Date:
-        random_date = random.randint(datetime.date(self._start.Year, self._Y))
+        random_date = random.randint(self._start.Day, self._end.Day)
         return Date(random_date)
