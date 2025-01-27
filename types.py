@@ -258,26 +258,8 @@ class MonthDayTimeSpan:
 
 class Date:
 
-    def __init__(self, year: int, month: int, day: int) -> None:
-        self._year = year
-        self._month = month
-        self._day = day
-
-    @property
-    def Year(self) -> int:
-        return self._year
-
-    @Year.setter
-    def Year(self, value: int) -> None:
-        self._year = value    
-
-    @property
-    def Month(self) -> int:
-        return self._month
-
-    @Month.setter
-    def Month(self, value: int) -> None:
-        self._month = value    
+    def __init__(self, day: int) -> None:
+        self._day = day  
 
     @property
     def Day(self) -> int:
@@ -289,26 +271,22 @@ class Date:
 
     def __le__(self, other: typing.Any) -> bool:
         if isinstance(other, float) or isinstance(other, int):
-            date = datetime.datetime.fromordinal(int(other))
-            return date.year > self._year or (date.year == self._year and date.month > self._month) or \
-                (date.year == self._year and date.month == self._month and date.day > self._day)
+            return self._day <= other
         return False
 
     def __ge__(self, other: typing.Any) -> bool:
         if isinstance(other, float) or isinstance(other, int):
-            date = datetime.datetime.fromordinal(int(other))
-            return date.year < self._year or (date.year == self._year and date.month < self._month) or \
-                (date.year == self._year and date.month == self._month and date.day < self._day)
+            return self._day >= other
         return False
 
     def __eq__(self, other: typing.Any) -> bool:
         if isinstance(other, float) or isinstance(other, int):
-            date = datetime.datetime.fromordinal(int(other))
-            return date.year == self._year and date.month == self._month and date.day == self._day
+            date = int(other)
+            return self._day == date
         return False
 
     def toordinal(self) -> int:
-        return datetime.date(self._year, self._month, self._day).toordinal()
+        return self._day
 
 class DateSpan:
 
@@ -333,9 +311,8 @@ class DateSpan:
         self._end = value
 
     def is_within(self, day: typing.Union[float, int]) -> bool:
-        return day >= self._start and day <= self._end
+        return self._start <= day and self._end >= day
 
     def sample(self) -> Date:
-        random_date = random.randint(datetime.date(self._start.Year, self._Y))
-        date = datetime.date.fromordinal(random_date)
-        return Date(date.year, date.month, date.day)
+        random_date = random.randint(self._start.Day, self._end.Day)
+        return Date(random_date)

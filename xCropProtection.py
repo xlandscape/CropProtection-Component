@@ -26,6 +26,7 @@ class xCropProtection(base.Component):
 
     # RELEASES
     VERSION = base.VersionCollection(
+        base.VersionInfo("1.18.0", "2025-01-27"),
         base.VersionInfo("1.17.0", "2024-11-06"),
         base.VersionInfo("1.16.5", None),
         base.VersionInfo("1.0.0", None)
@@ -36,6 +37,7 @@ class xCropProtection(base.Component):
     VERSION.added("1.16.5", "xCropProtection component")
     VERSION.changed("1.16.5", "Bound xCropProtection version to core version")
     VERSION.changed("1.17.0", "Moved CropProtection component to its own repository")
+    VERSION.changed("1.18.0", "Implemented run time reductions in the CropProtection component")
 
     RANDOM_TYPES = ("xCropProtection.NormalDistribution", "xCropProtection.UniformDistribution", "xCropProtection.DiscreteUniformDistribution", "xCropProtection.ChoiceDistribution")
     TIME_SPAN_TYPES = ("xCropProtection.TimeSpan", "xCropProtection.MonthDaySpan", "xCropProtection.MonthDayTimeSpan", "xCropProtection.DateSpan")
@@ -142,6 +144,7 @@ class xCropProtection(base.Component):
         ])
         self._ppmCalendars = None
         self._technologies = None
+        self._application_dates = None
 
     @property
     def PPMCalendars(self) -> typing.List[PPMCalendar]:
@@ -158,6 +161,14 @@ class xCropProtection(base.Component):
     @Technologies.setter
     def Technologies(self, value: typing.List[Technology]) -> None:
         self._technologies = value
+    
+    @property
+    def ApplicationDates(self) -> typing.List[int]:
+        return self._application_dates
+    
+    @ApplicationDates.setter
+    def ApplicationDates(self, value: typing.List[int]) -> None:
+        self._application_dates = value
 
     def check_random_variable_scales(self, scales: str) -> None:
 
@@ -237,7 +248,8 @@ class xCropProtection(base.Component):
                     else:
                         dates = value.split(" to ")
                         dates = (datetime.datetime.strptime(dates[0], "%Y-%m-%d"), datetime.datetime.strptime(dates[1], "%Y-%m-%d"))
-                        values[key] = DateSpan(Date(dates[0].year, dates[0].month, dates[0].day), Date(dates[1].year, dates[1].month, dates[1].day))
+                        values[key] = DateSpan(Date(datetime.date(dates[0].year, dates[0].month, dates[0].day).toordinal()), 
+                                               Date(datetime.date(dates[1].year, dates[1].month, dates[1].day).toordinal()))
 
             # get type for variable:
             if not type:
@@ -323,7 +335,8 @@ class xCropProtection(base.Component):
             if ppm_calendar.TemporalValidity.Type == "str":
                 for key, value in ppm_calendar.TemporalValidity.Value.items():
                     if value == "always":
-                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(1, 1, 1), Date(9999, 12, 31))
+                        ppm_calendar.TemporalValidity.Value[key] = DateSpan(Date(datetime.date(1, 1, 1).toordinal()), 
+                                                                            Date(datetime.date(9999, 12, 31).toordinal()))
 
     def set_min_applied_area(self) -> None:
         try:
@@ -358,6 +371,50 @@ class xCropProtection(base.Component):
             new_node = xml.etree.ElementTree.parse(file).getroot()
             root.insert(0, new_node)
             root.remove(node)
+
+    def get_application_dates(self, root: xml.etree.ElementTree, namespace: typing.Dict[str, str]) -> None:
+        """Generate a list of all days which are the start date of an application window in the input file."""
+        # Define the simulation bounds
+        sim_start = self.inputs["SimulationStart"].read().values.toordinal()
+        sim_end = self.inputs["SimulationEnd"].read().values.toordinal()
+        output_dates = []
+
+        for calendar in root.findall(".//*PPMCalendar", namespace):
+            temporal_validity = calendar.find(".//TemporalValidity", namespace)
+
+            # The calendar is always valid
+            if temporal_validity.text.strip() == 'always':
+                calendar_validity = (datetime.date(1, 1, 1).toordinal(), datetime.date(9999, 12, 31).toordinal())
+            else: # The calendar has a specific temporal validity
+                dates = temporal_validity.text.strip().split(" to ")
+                calendar_validity = (datetime.date.fromisoformat(dates[0]).toordinal(), datetime.date.fromisoformat(dates[1]).toordinal())
+
+            calendar_days = []
+            # Get all application windows in the current calendar
+            for application_window in calendar.findall(".//ApplicationWindow", namespace):
+                window = application_window.text.strip().split(" to ")
+                # Append the start date of the window
+                calendar_days.append(window[0])
+
+            # Remove duplicate days with set()
+            calendar_days = list(set(calendar_days))
+            
+            dates_to_add = []
+            # Calculate the proleptic Gregorian ordinal for each day in the list and year in the simulation
+            for year in list(range(datetime.date.fromordinal(sim_start).year, datetime.date.fromordinal(sim_end).year + 1)):
+                # Concatenate the year with the month-day from the application window
+                str_dates = [str(year) + "-" + md for md in calendar_days]
+                ordinal_dates = [datetime.date.fromisoformat(x).toordinal() for x in str_dates]
+                dates_to_add.extend(ordinal_dates)
+            # Remove any dates that occur outside the calendar's temporal validity
+            output_dates.extend(list(filter(lambda x: x >= calendar_validity[0] and x <= calendar_validity[1], dates_to_add)))
+        # Remove duplicate dates between calendars
+        output_dates = list(set(output_dates))
+        output_dates = list(filter(lambda x: x >= sim_start and x <= sim_end, output_dates))
+        # Sort oldest to latest
+        output_dates.sort()
+        
+        self.ApplicationDates = output_dates
 
     def read_xml(self) -> None:
         # start reading xml:
@@ -396,6 +453,7 @@ class xCropProtection(base.Component):
         self.convert_types()
         # set the minimum applied area for each calendar
         self.set_min_applied_area()
+        self.get_application_dates(root, namespace)
 
     def run(self):
 
@@ -437,7 +495,7 @@ class xCropProtection(base.Component):
         self.default_observer.write_message(5, f"Simulation started.")
         
         # loop over each each day
-        for day in range(sim_start, sim_end + 1):
+        for day in self.ApplicationDates:
             
             # loop over each field
             for field in range(len(fields)):
