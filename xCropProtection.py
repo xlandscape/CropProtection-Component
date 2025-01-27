@@ -26,6 +26,7 @@ class xCropProtection(base.Component):
 
     # RELEASES
     VERSION = base.VersionCollection(
+        base.VersionInfo("1.18.0", "2025-01-27"),
         base.VersionInfo("1.17.0", "2024-11-06"),
         base.VersionInfo("1.16.5", None),
         base.VersionInfo("1.0.0", None)
@@ -36,6 +37,7 @@ class xCropProtection(base.Component):
     VERSION.added("1.16.5", "xCropProtection component")
     VERSION.changed("1.16.5", "Bound xCropProtection version to core version")
     VERSION.changed("1.17.0", "Moved CropProtection component to its own repository")
+    VERSION.changed("1.18.0", "Implemented run time reductions in the CropProtection component")
 
     RANDOM_TYPES = ("xCropProtection.NormalDistribution", "xCropProtection.UniformDistribution", "xCropProtection.DiscreteUniformDistribution", "xCropProtection.ChoiceDistribution")
     TIME_SPAN_TYPES = ("xCropProtection.TimeSpan", "xCropProtection.MonthDaySpan", "xCropProtection.MonthDayTimeSpan", "xCropProtection.DateSpan")

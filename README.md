@@ -25,11 +25,12 @@ deterministic values or sample from a random distribution.
 xCropProtection currently supports the input scales `global` and `time/day, space/base_geometry`.  
 xCropProtection currently supports the random variable scales `global`, `time/day`, `time/year`, `time/day, space/base_geometry` and `time/year, space/base_geometry`.  
 This is an automatically generated documentation based on the available code and in-line documentation. The current
-version of this document is from 2024-11-06.
+version of this document is from 2025-01-27.
 
 ### Built with
 
 * Landscape Model core version 1.16.5
+* CropProtection-Component version 1.18.0
 * xCropProtection version 1.0 
 
 ## Getting Started
