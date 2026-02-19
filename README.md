@@ -25,40 +25,38 @@ deterministic values or sample from a random distribution.
 xCropProtection currently supports the input scales `global` and `time/day, space/base_geometry`.  
 xCropProtection currently supports the random variable scales `global`, `time/day`, `time/year`, `time/day, space/base_geometry` and `time/year, space/base_geometry`.  
 This is an automatically generated documentation based on the available code and in-line documentation. The current
-version of this document is from 2025-01-27.
+version of this document is from 2026-02-19.
 
 ### Built with
 
-* Landscape Model core version 1.16.5
-* CropProtection-Component version 1.18.0
+* Landscape Model core version 1.18.1
 * xCropProtection version 1.0 
 
 ## Getting Started
 
-The component can be used in any Landscape Model based on core version 1.16.5 or newer. See the Landscape
+The component can be used in any Landscape Model based on core version 1.18.1 or newer. See the Landscape
 Model core's `README` for general tips on how to add a component to a Landscape Model.
 
 ### Prerequisites
 
-A model developer that wants to add the `xCropProtection` component to a Landscape Model needs to set up the general
+A model developer that wants to add the `PPM` component to a Landscape Model needs to set up the general
 structure for a Landscape Model first. See the Landscape Model core's `README` for details on how to do so.
 
 ### Installation
 
-1. Copy the `xCropProtection` component into the `model\variant` sub-folder.
+1. Copy the `PPM` component into the `model\variant` sub-folder.
 2. Make use of the component by including it into the model composition using `module=CropProtection.xCropProtection` and
    `class=xCropProtection`.
 
 ## Usage
 
-The following gives a sample configuration of the `xCropProtection` component. See [inputs](#inputs) and
+The following gives a sample configuration of the `PPM` component. See [inputs](#inputs) and
 [outputs](#outputs) for further details on the component's interface.
 
 ```xml
-<xCropProtection module="CropProtection" class="xCropProtection">
-  <xCropProtectionFilePath scales="global">
-$(_PROJECT_DIR_)\CropProtection\$(CropProtectionScenario).xml
-  </xCropProtectionFilePath>
+<PPM module="CropProtection" class="xCropProtection">
+  <xCropProtectionFilePath
+scales="global">$(_PROJECT_DIR_)\scenario\CropProtection.xml</xCropProtectionFilePath>
   <ParametrizationNamespace
 scales="global">
     urn:xCropProtectionLandscapeScenarioParametrization
@@ -67,23 +65,22 @@ scales="global">
   <SimulationEnd type="date"
 scales="global">$(SimulationEnd)</SimulationEnd>
   <RandomSeed type="int" scales="global">0</RandomSeed>
-<OutputApplicationType>$(OutputApplicationType)</OutputApplicationType>
-<ProductDatabase>$(_PROJECT_DIR_)\$(ProductDatabase)</ProductDatabase>
-  <MinimumAppliedArea
-scales="global">$(MinimumAppliedArea)</MinimumAppliedArea>
+<OutputApplicationType>product</OutputApplicationType>
+<ProductDatabase>$(_EXP_BASE_DIR_)\$(SimID)\dummy.sqlite</ProductDatabase>
+<XMLPath>$(_EXP_BASE_DIR_)\$(SimID)</XMLPath>
+  <MinimumAppliedArea scales="global">10</MinimumAppliedArea>
   <Fields>
-    <FromOutput component="LandscapeScenario"
-output="FeatureIds" />
+<FromOutput component="LandscapeScenario" output="FeatureIds" />
   </Fields>
   <LandUseLandCoverTypes>
-    <FromOutput component="LandscapeScenario"
-output="FeatureTypeIds" />
+    <FromOutput
+component="LandscapeScenario" output="FeatureTypeIds" />
   </LandUseLandCoverTypes>
   <FieldGeometries>
-    <FromOutput component="LandscapeScenario"
-output="Geometries" />
+    <FromOutput
+component="LandscapeScenario" output="Geometries" />
   </FieldGeometries>
-</xCropProtection>
+</PPM>
 ```
 
 ### Inputs
@@ -175,21 +172,33 @@ Values have to refer to the `global` scale.
 
 
 ### Outputs
+
 #### ApplicationDates
+
 Application dates. A numpy-array of scale other/application.
+
 #### ApplicationRates
+
 Application rates. A numpy-array of scale other/application.
+
 #### AppliedPPP
+
 Applied products/substances. A list[str] of scale other/application.
+
 #### AppliedAreas
+
 Applied geometries. A list[bytes] of scale other/application.
+
 #### AppliedFields
+
 Applied fields. A numpy-array of scale other/application.
+
 #### TechnologyDriftReductions
+
 Drift reductions. A numpy-array of scale other/application.
 ## Roadmap
 
-The `xCropProtection` component is stable. No further development takes place at the moment.
+The `PPM` component is stable. No further development takes place at the moment.
 
 ## Contributing
 
@@ -320,7 +329,9 @@ The following gives a basic sample parametrization of the `xCropProtection` comp
                                     <ApplicationRate type="float" unit="g/ha" scales="global">1000</ApplicationRate>
                                 </ApplicationRates>
                             </Tank>
-                            <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                            <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                                01-06 to 14-06
+                            </ApplicationWindow>
                             <Technology scales="global">ExampleTechnology</Technology>
                             <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                             <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -458,7 +469,9 @@ The following gives a sample parametrization of the `xCropProtection` component 
                         <ApplicationRate type="float" unit="g/ha" scales="global">1000</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-06 to 14-06
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -477,7 +490,9 @@ The following gives a sample parametrization of the `xCropProtection` component 
                         <ApplicationRate type="float" unit="g/ha" scales="global">750</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-06 to 14-06
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -492,7 +507,9 @@ The following gives a sample parametrization of the `xCropProtection` component 
                         <ApplicationRate type="float" unit="g/ha" scales="global">750</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-07 to 14-07</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-07 to 14-07
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -503,7 +520,7 @@ The following gives a sample parametrization of the `xCropProtection` component 
 </Indications>
 ````  
 ## Deterministic and random variables  
-Numeric variables can be parametrized either deterministically or by describing the underlying random distribution. Currently, users can choose between normal or (continuous and discrete) uniform distribution. The following gives sample parametrizations for numeric variables:
+Numeric variables can be parametrized either deterministically or by describing the underlying random distribution. Currently, users can choose between normal or (continuous and discrete) uniform distribution. The following gives sample parametrization for numeric variables:
 ```xml
 <DeterministicVariable type="float">5.0</DeterministicVariable>
 <RandomVariable type="xCropProtection.NormalDistribution">
@@ -529,7 +546,7 @@ Some variables can be parametrized such that one of the elements is randomly sel
 </Choices>
 ````  
 ## Date-time-windows  
-There are variables that describe date-time-windows. Exact dates/times are sampled during simulation. The following gives sample parametrizations for date-time-windows:
+There are variables that describe date-time-windows. Exact dates/times are sampled during simulation. The following gives sample parametrization for date-time-windows:
 ```xml
 <TimeWindow type="xCropProtection.TimeSpan">00:00 to 23:59</TimeWindow>
 <DateWindow type="xCropProtection.MonthDaySpan">01-01 to 31-12</DateWindow>

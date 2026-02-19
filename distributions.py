@@ -217,8 +217,8 @@ class ChoiceDistribution(Distribution):
     def sample(self, index: typing.Tuple[int], scales: str) -> typing.Any:
         objects = [choice.Object for choice in self._choiceList]
         probabilities = [choice.Probability for choice in self._choiceList]
-        if round(np.sum(probabilities),5) != 1.0:
-            raise ValueError("Probability sum is not 1.0!")
+        if np.sum(probabilities) > 1.0001 or np.sum(probabilities) < 0.9999:
+            raise ValueError("Probability sum is " + str(np.sum(probabilities)) + ", but it must be 1.0.")
         if np.any(np.array(probabilities) < 0.0) or np.any(np.array(probabilities) > 1.0):
             raise ValueError("Probabilities have to be between 0.0 and 1.0!")
         return random.choices(objects, weights=probabilities)[0]
