@@ -1,12 +1,10 @@
-import re
-import sys
+"""
+Documents the xLandscape CropProtection component.
+"""
 import os
-import textwrap
-import inspect
-import xml.etree.ElementTree
+import observer.ConsoleObserver
 from CropProtection import xCropProtection
 from base import documentation
-
 
 # parameters:
 PARAMETERS = {
@@ -16,7 +14,9 @@ PARAMETERS = {
             "unit": "none",
             "scales": "time/simulation|time/day|time/year",
         },
-        "description": "Temporal validity of the PPM-calendar (format: 'mm-dd to mm-dd' or 'yyyy-mm-dd to yyyy-mm-dd'). Set 'always' if the PPM-calendar should be applied over the whole simulation.",
+        "description":
+            "Temporal validity of the PPM-calendar (format: 'mm-dd to mm-dd' or 'yyyy-mm-dd to yyyy-mm-dd'). Set "
+            "'always' if the PPM-calendar should be applied over the whole simulation.",
     },
     "TargetCrops": {
         "attributes": {
@@ -24,7 +24,9 @@ PARAMETERS = {
             "unit": "none",
             "scales": "global|time/day|time/year",
         },
-        "description": "Target crops of the PPM-calendar. Either use 'TargetCrops' or 'TargetFields' within a parametrization of a PPM-calendar.",       
+        "description":
+            "Target crops of the PPM-calendar. Either use 'TargetCrops' or 'TargetFields' within a parametrization of "
+            "a PPM-calendar.",
     },
     "TargetFields": {
         "attributes": {
@@ -32,7 +34,9 @@ PARAMETERS = {
             "unit": "none",
             "scales": "global|time/day|time/year",
         },
-        "description": "Target fields of the PPM-calendar. Either use 'TargetCrops' or 'TargetFields' within a parametrization of a PPM-calendar.",       
+        "description":
+            "Target fields of the PPM-calendar. Either use 'TargetCrops' or 'TargetFields' within a parametrization of "
+            "a PPM-calendar.",
     },
     "Products": {
         "attributes": {
@@ -40,7 +44,7 @@ PARAMETERS = {
             "unit": "none",
             "scales": "other/products|other/active_substances",
         },
-        "description": "List of products that should be applied during a single application.",        
+        "description": "List of products that should be applied during a single application.",
     },
     "ApplicationRate": {
         "attributes": {
@@ -48,7 +52,7 @@ PARAMETERS = {
             "unit": "g/ha",
             "scales": "global|time/day|time/year|time/day, space/base_geometry|time/year, space/base_geometry",
         },
-        "description": "Application rate of product that should be applied during a single application.",   
+        "description": "Application rate of product that should be applied during a single application.",
     },
     "ApplicationWindow": {
         "attributes": {
@@ -56,7 +60,7 @@ PARAMETERS = {
             "unit": "none",
             "scales": "global|time/day|time/year",
         },
-        "description": "Application window of a single application (format: mm-dd to mm-dd).",       
+        "description": "Application window of a single application (format: mm-dd to mm-dd).",
     },
     "Technology": {
         "attributes": {
@@ -64,7 +68,9 @@ PARAMETERS = {
             "unit": "none",
             "scales": "global",
         },
-        "description": "Technology used during a single application. The user should make sure that there is a corresponding parametrization within 'Technologies'.",                
+        "description":
+            "Technology used during a single application. The user should make sure that there is a corresponding "
+            "parametrization within 'Technologies'.",
     },
     "InCropBuffer": {
         "attributes": {
@@ -72,7 +78,7 @@ PARAMETERS = {
             "unit": "m",
             "scales": "global|time/day|time/year|time/day, space/base_geometry|time/year, space/base_geometry",
         },
-        "description": "Additional non-spray-buffer within the cropped field.",                
+        "description": "Additional non-spray-buffer within the cropped field.",
     },
     "InFieldMargin": {
         "attributes": {
@@ -80,7 +86,7 @@ PARAMETERS = {
             "unit": "m",
             "scales": "global|time/day|time/year|time/day, space/base_geometry|time/year, space/base_geometry",
         },
-        "description": "Additional non-crop-margin within the field.",                        
+        "description": "Additional non-crop-margin within the field.",
     },
     "MinimumAppliedArea": {
         "attributes": {
@@ -88,7 +94,7 @@ PARAMETERS = {
             "unit": "m²",
             "scales": "global|time/day|time/year|time/day, space/base_geometry|time/year, space/base_geometry",
         },
-        "description": "Minimum area of a field for a single application.",                
+        "description": "Minimum area of a field for a single application.",
     },
     "TechnologyName": {
         "attributes": {
@@ -96,7 +102,7 @@ PARAMETERS = {
             "unit": "none",
             "scales": "global",
         },
-        "description": "Technology name.",                
+        "description": "Technology name.",
     },
     "DriftReduction": {
         "attributes": {
@@ -104,17 +110,28 @@ PARAMETERS = {
             "unit": "1",
             "scales": "global|time/day|time/year|time/day, space/base_geometry|time/year, space/base_geometry",
         },
-        "description": "Drift reduction of a technology.",                
+        "description": "Drift reduction of a technology.",
     }
 }
-                    
+
+
 def document_parameters(name: str, file_path: str):
-    with open(file_path, "a", encoding="utf-8") as f: 
+    """
+    Documents the parameters of the CropProtection component.
+
+    Args:
+        name: The heading to use for the documentation section.
+        file_path: The path of the Markdown-file to which the section is appended.
+
+    Returns:
+        None.
+    """
+    with open(file_path, "a", encoding="utf-8") as f:
         f.write(f"## {name}\n")
         for param in PARAMETERS:
             param_name = param
-            type = PARAMETERS[param]["attributes"]["type"].split("|")
-            type = " or ".join(["`" + x + "`" for x in type])
+            param_type = PARAMETERS[param]["attributes"]["type"].split("|")
+            param_type = " or ".join(["`" + x + "`" for x in param_type])
             unit = PARAMETERS[param]["attributes"]["unit"].split("|")
             unit = " or ".join(["`" + x + "`" for x in unit])
             scales = PARAMETERS[param]["attributes"]["scales"].split("|")
@@ -122,11 +139,12 @@ def document_parameters(name: str, file_path: str):
             description = PARAMETERS[param]["description"]
             f.write(f"""### {param_name} 
 {description}\n
-Type(s): {type}\n
+Type(s): {param_type}\n
 Unit: {unit}\n
 Scale(s): {scales}
 """)
-        
+
+
 # examples:
 EXAMPLES = [
     {
@@ -147,7 +165,9 @@ EXAMPLES = [
                                     <ApplicationRate type="float" unit="g/ha" scales="global">1000</ApplicationRate>
                                 </ApplicationRates>
                             </Tank>
-                            <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                            <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                                01-06 to 14-06
+                            </ApplicationWindow>
                             <Technology scales="global">ExampleTechnology</Technology>
                             <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                             <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -168,7 +188,9 @@ EXAMPLES = [
     },
     {
         "title": "Multiple applications",
-        "description": "The following gives a sample parametrization of the `xCropProtection` component for multiple applications:",
+        "description":
+            "The following gives a sample parametrization of the `xCropProtection` component for multiple "
+            "applications:",
         "example": """<ApplicationSequence>
     <Application>
         <Tank>
@@ -232,7 +254,9 @@ EXAMPLES = [
     },
     {
         "title": "Choices between application sequences",
-        "description": "The following gives a sample parametrization of the `xCropProtection` component for random choices over multiple application sequences:",
+        "description":
+            "The following gives a sample parametrization of the `xCropProtection` component for random choices over "
+            "multiple application sequences:",
         "example": """<Indication type="xCropProtection.ChoiceDistribution" scales="global">
     <ApplicationSequence probability="0.5">
         <Application>
@@ -272,7 +296,8 @@ EXAMPLES = [
     },
     {
         "title": "Multiple indications",
-        "description": "The following gives a sample parametrization of the `xCropProtection` component for multiple indications:",
+        "description":
+            "The following gives a sample parametrization of the `xCropProtection` component for multiple indications:",
         "example": """<Indications>
     <Indication>
         <ApplicationSequence>
@@ -285,7 +310,9 @@ EXAMPLES = [
                         <ApplicationRate type="float" unit="g/ha" scales="global">1000</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-06 to 14-06
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -304,7 +331,9 @@ EXAMPLES = [
                         <ApplicationRate type="float" unit="g/ha" scales="global">750</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-06 to 14-06</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-06 to 14-06
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -319,7 +348,9 @@ EXAMPLES = [
                         <ApplicationRate type="float" unit="g/ha" scales="global">750</ApplicationRate>
                     </ApplicationRates>
                 </Tank>
-                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">01-07 to 14-07</ApplicationWindow>
+                <ApplicationWindow type="xCropProtection.MonthDaySpan" scales="global">
+                    01-07 to 14-07
+                </ApplicationWindow>
                 <Technology scales="global">ExampleTechnology</Technology>
                 <InCropBuffer type="float" unit="m" scales="global">0</InCropBuffer>
                 <InFieldMargin type="float" unit="m" scales="global">0</InFieldMargin>
@@ -330,8 +361,11 @@ EXAMPLES = [
 </Indications>"""
     },
     {
-        "title": "Deterministic and random variables", 
-        "description": "Numeric variables can be parametrized either deterministically or by describing the underlying random distribution. Currently, users can choose between normal or (continuous and discrete) uniform distribution. The following gives sample parametrizations for numeric variables:",
+        "title": "Deterministic and random variables",
+        "description":
+            "Numeric variables can be parametrized either deterministically or by describing the underlying random "
+            "distribution. Currently, users can choose between normal or (continuous and discrete) uniform "
+            "distribution. The following gives sample parametrization for numeric variables:",
         "example": """<DeterministicVariable type="float">5.0</DeterministicVariable>
 <RandomVariable type="xCropProtection.NormalDistribution">
     <Mean type="float">5.0</Mean>
@@ -347,8 +381,11 @@ EXAMPLES = [
 </RandomVariable>"""
     },
     {
-        "title": "Choice distribution", 
-        "description": "Some variables can be parametrized such that one of the elements is randomly selected according to their probability during simulation (i.e. an element is randomly sampled from a discrete set). The following gives a sample parametrization for the choice distribution:",
+        "title": "Choice distribution",
+        "description":
+            "Some variables can be parametrized such that one of the elements is randomly selected according to their "
+            "probability during simulation (i.e. an element is randomly sampled from a discrete set). The following "
+            "gives a sample parametrization for the choice distribution:",
         "example": """<Choices type="xCropProtection.ChoiceDistribution">
     <Choice probability="0.25">...</Choice>
     <Choice probability="0.25">...</Choice>
@@ -357,7 +394,9 @@ EXAMPLES = [
     },
     {
         "title": "Date-time-windows",
-        "description": "There are variables that describe date-time-windows. Exact dates/times are sampled during simulation. The following gives sample parametrizations for date-time-windows:",
+        "description":
+            "There are variables that describe date-time-windows. Exact dates/times are sampled during simulation. The "
+            "following gives sample parametrization for date-time-windows:",
         "example": """<TimeWindow type="xCropProtection.TimeSpan">00:00 to 23:59</TimeWindow>
 <DateWindow type="xCropProtection.MonthDaySpan">01-01 to 31-12</DateWindow>
 <DateWindow type="xCropProtection.DateSpan">2023-01-01 to 2023-31-12</DateWindow>
@@ -365,8 +404,18 @@ EXAMPLES = [
     },
 ]
 
+
 def document_examples(file_path: str):
-    with open(file_path, "a", encoding="utf-8") as f: 
+    """
+    Adds a section with examples to a Markdown file.
+
+    Args:
+        file_path: The path of the Markdown-file to which the section is appended.
+
+    Returns:
+        None.
+    """
+    with open(file_path, "a", encoding="utf-8") as f:
         for example in EXAMPLES:
             title = example["title"]
             sample_description = example["description"]
@@ -378,44 +427,12 @@ def document_examples(file_path: str):
 ````  
 """)
 
-# def document_class(name: str, class_name: str, file_path: str):
-#     doc = globals()[class_name].__doc__
-#     description = re.search(r"(?<=    ).*(?=\n\n    INPUTS)", doc).group(0)
-#     inputs = re.search(r"(?<=INPUTS\n    )(.|\n)*?(?=(\n    OUTPUTS|$))", doc).group(0)
-#     inputs = inputs.split("    ")
-#     inputs = inputs[:-1]
-#     inputs = ["* " + input.strip() for input in inputs]
-#     with open(file_path, "a", encoding="utf-8") as f:
-#         f.write(f"""#### {name}
-# {description} This class is parametrized with the following inputs:
-# """)    
-#         inputs = "  \n".join(inputs)
-#         f.write(inputs + "  \n\n")
-
-# def document_xml(name: str, sample_xml_path: str, file_path: str):
-#     sample_xml = xml.etree.ElementTree.parse(sample_xml_path)
-#     sample_parametrization = "\n".join(
-#         textwrap.wrap(
-#             inspect.cleandoc(
-#                 xml.etree.ElementTree.tostring(
-#                     sample_xml.getroot()).decode("utf-8")),
-#             120,
-#             replace_whitespace=False
-#             )
-#         )
-#     with open(file_path, "a", encoding="utf-8") as f: 
-#         f.write(f"""## {name}  
-# The following gives a sample parametrization of the `xCropProtection` component.  
-# ```xml
-# {sample_parametrization}
-# ````  
-# """)
 
 readme_path = os.path.join("model", "variant", "CropProtection", "README.md")
 mc_xml_path = os.path.join("model", "variant", "mc.xml")
 
 documentation.document_component(
-    xCropProtection("xCropProtection", None, None),
+    xCropProtection("PPM", observer.ConsoleObserver(), None),
     readme_path,
     mc_xml_path
 )
